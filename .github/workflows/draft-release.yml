@@ -62,6 +62,9 @@ jobs:
               docker push $REPO:${{ inputs.tag }}
           done
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Retag and push Docker images (Sources + Reactions)
         run: |
             IMAGE_NAMES=(
