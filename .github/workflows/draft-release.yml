@@ -92,16 +92,16 @@ jobs:
             for IMAGE_NAME in "${IMAGE_NAMES[@]}"; do
               REPO=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
 
-              docker pull $REPO:${{ github.sha }}@linux/amd64
-              docker pull $REPO:${{ github.sha }}@linux/arm64
+
+              docker pull $REPO@${{ github.sha }} --platform linux/amd64
+              docker pull $REPO@${{ github.sha }} --platform linux/arm64
 
               docker manifest create $REPO:${{ inputs.tag }} \
-                $REPO:${{ github.sha }}@linux/amd64 \
-                $REPO:${{ github.sha }}@linux/arm64
+                $REPO@${{ github.sha }} --platform linux/amd64 \
+                $REPO@${{ github.sha }} --platform linux/arm64
 
-
-              docker manifest annotate $REPO:${{ inputs.tag }} $REPO:${{ github.sha }}@amd64 --os linux --arch amd64
-              docker manifest annotate $REPO:${{ inputs.tag }} $REPO:${{ github.sha }}@arm64 --os linux --arch arm64
+              docker manifest annotate $REPO:${{ inputs.tag }} $REPO@${{ github.sha }} --os linux --arch amd64
+              docker manifest annotate $REPO:${{ inputs.tag }} $REPO@${{ github.sha }} --os linux --arch arm64
 
               # Push the multi-arch manifest list
               docker manifest push $REPO:${{ inputs.tag }}
