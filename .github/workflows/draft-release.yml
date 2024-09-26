@@ -42,6 +42,13 @@ jobs:
           submodules: true
           token: ${{ secrets.DRASI_CORE_PAT }}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
+        with:
+          install: true
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
@@ -96,6 +103,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
+        with:
+          install: true
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
@@ -127,62 +142,7 @@ jobs:
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/kubernetes-provider:cache,mode=max
           push: true
 
-  build-shared-sources:
-    runs-on: ubuntu-latest
-    needs: validate
-    permissions:
-      packages: write
-      contents: read
-    strategy:
-      matrix:
-        component: [
-          { 
-            label: 'Change Router',
-            context: '.', 
-            file: './sources/shared/change-router/Dockerfile', 
-            name: 'source-change-router', 
-            platforms: 'linux/amd64'
-          },
-          { 
-            label: 'Change Dispatcher',
-            context: '.', 
-            file: './sources/shared/change-dispatcher/Dockerfile', 
-            name: 'source-change-dispatcher', 
-            platforms: 'linux/amd64'
-          },
-          { 
-            label: 'Query API',
-            context: '.', 
-            file: './sources/shared/query-api/Dockerfile', 
-            name: 'source-query-api', 
-            platforms: 'linux/amd64' 
-          }
-        ]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Build and push
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
-        with:
-          context: ${{ matrix.component.context }}
-          file: ${{ matrix.component.file }}
-          platforms: ${{ matrix.component.platforms }}
-          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:${{ inputs.tag }}
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache,mode=max
-          push: true
-
-
-  build-multi-arch-sources:
+  build-sources:
     runs-on: ubuntu-latest
     needs: validate
     permissions:
@@ -406,6 +366,47 @@ jobs:
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache,mode=max
           push: true
 
+  tag-single-arch:
+    permissions:
+      packages: write
+      contents: read
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Retag and push Docker images
+        run: |
+            IMAGE_NAMES=(
+                "query-container-query-host"
+                "query-container-publish-api"
+                "query-container-view-svc"
+                "api"
+                "kubernetes-provider"
+                
+                "source-change-router"
+                "source-change-dispatcher"
+                "source-query-api"
+
+            )
+
+            for IMAGE_NAME in "${IMAGE_NAMES[@]}"; do
+                REPO=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+
+                docker pull $REPO:${{ github.sha }}
+                docker tag $REPO:${{ github.sha }} $REPO:${{ inputs.tag }}
+                docker push $REPO:${{ inputs.tag }}
+            done
+    
+      - name: Logout from GitHub Container Registry
+        run: docker logout ghcr.io
+
   
   build-cli:
     runs-on: ubuntu-latest
@@ -515,8 +516,8 @@ jobs:
     name: Draft Release
     needs:
       - validate
-      - build-shared-sources
-      - build-multi-arch-sources
+      - build-sources
+      - tag-single-arch
       - build-query-container
       - build-reactions
       - build-control-plane
