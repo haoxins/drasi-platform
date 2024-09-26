@@ -65,6 +65,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          jq --version 
+        
       - name: Retag and push Docker images (Sources + Reactions)
         run: |
             IMAGE_NAMES=(
@@ -94,18 +100,15 @@ jobs:
 
             for IMAGE_NAME in "${IMAGE_NAMES[@]}"; do
               REPO=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+              manifest_json=$(docker manifest inspect $REPO)
 
+              # Extract digests using jq
+              amd64_digest=$(echo "$manifest_json" | jq -r '.manifests[] | select(.platform.architecture == "amd64") | .digest')
+              arm64_digest=$(echo "$manifest_json" | jq -r '.manifests[] | select(.platform.architecture == "arm64") | .digest')
 
-              docker pull $REPO@${{ github.sha }} --platform linux/amd64
-
-              docker manifest create $REPO:${{ inputs.tag }} \
-                $REPO@${{ github.sha }} --platform linux/amd64 \
-                $REPO@${{ github.sha }} --platform linux/arm64
-
-              docker manifest annotate $REPO:${{ inputs.tag }} $REPO@${{ github.sha }} --os linux --arch amd64
-              docker manifest annotate $REPO:${{ inputs.tag }} $REPO@${{ github.sha }} --os linux --arch arm64
-
-              docker manifest push $REPO:${{ inputs.tag }}
+              # Output the digests
+              echo "AMD64 Digest: $amd64_digest"
+              echo "ARM64 Digest: $arm64_digest"
             done
     
       - name: Logout from GitHub Container Registry
