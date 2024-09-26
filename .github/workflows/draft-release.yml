@@ -62,7 +62,7 @@ jobs:
         with:
           context: ./query-container/query-host
           file: ./query-container/query-host/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-query-host:${{ inputs.tag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/query-host:cache
@@ -74,7 +74,7 @@ jobs:
         with:
           context: ./query-container/publish-api
           file: ./query-container/publish-api/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-publish-api:${{ inputs.tag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/publish-api:cache
@@ -86,7 +86,7 @@ jobs:
         with:
           context: ./query-container/view-svc
           file: ./query-container/view-svc/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-view-svc:${{ inputs.tag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/view-svc:cache
