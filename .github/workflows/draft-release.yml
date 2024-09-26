@@ -102,13 +102,23 @@ jobs:
               REPO=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
               manifest_json=$(docker manifest inspect $REPO:${{ github.sha }})
 
-              # Extract digests using jq
               amd64_digest=$(echo "$manifest_json" | jq -r '.manifests[] | select(.platform.architecture == "amd64") | .digest')
               arm64_digest=$(echo "$manifest_json" | jq -r '.manifests[] | select(.platform.architecture == "arm64") | .digest')
 
-              # Output the digests
-              echo "AMD64 Digest: $amd64_digest"
-              echo "ARM64 Digest: $arm64_digest"
+              if [[ -n "$amd64_digest" && -n "$arm64_digest" ]]; then
+                  # Create a new manifest if both digests are not empty
+                  docker manifest create $REPO:{{ input.tag }} \
+                      $REPO:${{ github.sha }}@sha256:$amd64_digest \
+                      $REPO:${{ github.sha }}@sha256:$arm64_digest
+                  docker manifest push $REPO:$NEW_TAG
+                  echo "Created new manifest: $REPO:$NEW_TAG"
+              else
+                  if [[ -n "$arm64_digest" ]]; then
+                      docker pull $REPO:${{ github.sha }}
+                      docker tag $REPO:${{ github.sha }} $REPO:${{ inputs.tag }}
+                      docker push $REPO:${{ inputs.tag }}
+                  fi
+              fi
             done
     
       - name: Logout from GitHub Container Registry
