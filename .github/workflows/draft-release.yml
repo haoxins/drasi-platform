@@ -110,6 +110,7 @@ jobs:
                   docker manifest create $REPO:${{ inputs.tag }} \
                       -a $REPO:${{ github.sha }}@sha256:$amd64_digest \
                       -a $REPO:${{ github.sha }}@sha256:$arm64_digest
+                  echo "created"
                   docker manifest push $REPO:${{ inputs.tag }}
                   echo "Created new manifest: $REPO:${{ inputs.tag }}"
               else
