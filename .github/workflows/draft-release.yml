@@ -100,7 +100,7 @@ jobs:
 
             for IMAGE_NAME in "${IMAGE_NAMES[@]}"; do
               REPO=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-              manifest_json=$(docker manifest inspect $REPO)
+              manifest_json=$(docker manifest inspect $REPO:${{ github.sha }})
 
               # Extract digests using jq
               amd64_digest=$(echo "$manifest_json" | jq -r '.manifests[] | select(.platform.architecture == "amd64") | .digest')
