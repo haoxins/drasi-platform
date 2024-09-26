@@ -111,7 +111,7 @@ jobs:
                       $REPO:${{ github.sha }}@sha256:$amd64_digest \
                       $REPO:${{ github.sha }}@sha256:$arm64_digest
                   docker manifest push $REPO:${{ inputs.tag }}
-                  echo "Created new manifest: $REPO:${{ inputs.tag }}
+                  echo "Created new manifest: $REPO:${{ inputs.tag }}"
               else
                   if [[ -z "$arm64_digest" ]]; then
                       docker pull $REPO:${{ github.sha }}
