@@ -108,8 +108,8 @@ jobs:
               if [[ -n "$amd64_digest" && -n "$arm64_digest" ]]; then
                   # Create a new manifest if both digests are not empty
                   docker manifest create $REPO:${{ inputs.tag }} \
-                      $REPO:${{ github.sha }}@sha256:$amd64_digest \
-                      $REPO:${{ github.sha }}@sha256:$arm64_digest
+                      -a $REPO:${{ github.sha }}@sha256:$amd64_digest \
+                      -a $REPO:${{ github.sha }}@sha256:$arm64_digest
                   docker manifest push $REPO:${{ inputs.tag }}
                   echo "Created new manifest: $REPO:${{ inputs.tag }}"
               else
