@@ -103,6 +103,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
@@ -154,21 +156,21 @@ jobs:
             context: '.', 
             file: './sources/shared/change-router/Dockerfile', 
             name: 'source-change-router', 
-            platforms: 'linux/amd64,linux/arm64' 
+            platforms: 'linux/amd64', linux/arm64
           },
           { 
             label: 'Change Dispatcher',
             context: '.', 
             file: './sources/shared/change-dispatcher/Dockerfile', 
             name: 'source-change-dispatcher', 
-            platforms: 'linux/amd64,linux/arm64' 
+            platforms: 'linux/amd64', linux/arm64
           },
           { 
             label: 'Query API',
             context: '.', 
             file: './sources/shared/query-api/Dockerfile', 
             name: 'source-query-api', 
-            platforms: 'linux/amd64,linux/arm64' 
+            platforms: 'linux/amd64', linux/arm64
           },
           { 
             label: 'Debezium Reactivator',
@@ -182,7 +184,7 @@ jobs:
             context: './sources/relational/sql-proxy', 
             file: './sources/relational/sql-proxy/Dockerfile', 
             name: 'source-sql-proxy', 
-            platforms: 'linux/amd64,linux/arm64' 
+            platforms: 'linux/amd64', linux/arm64 
           },
 
           { 
@@ -197,7 +199,7 @@ jobs:
             context: './sources/cosmosdb/gremlin-proxy', 
             file: './sources/cosmosdb/gremlin-proxy/Dockerfile', 
             name: 'source-gremlin-proxy', 
-            platforms: 'linux/amd64,linux/arm64'
+            platforms: 'linux/amd64', linux/arm64
           },
 
           { 
