@@ -42,14 +42,6 @@ jobs:
           submodules: true
           token: ${{ secrets.DRASI_CORE_PAT }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
-        with:
-          install: true
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
@@ -65,8 +57,6 @@ jobs:
           platforms: linux/amd64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-query-host:amd64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/query-host:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/query-host:cache,mode=max
           push: true
 
       - name: Build Publish API
@@ -77,8 +67,6 @@ jobs:
           platforms: linux/amd64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-publish-api:amd64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/publish-api:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/publish-api:cache
           push: true
 
       - name: Build View Service
@@ -89,8 +77,6 @@ jobs:
           platforms: linux/amd64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-view-svc:amd64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/view-svc:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/view-svc:cache
           push: true
   
   build-query-container-arm64:
@@ -106,13 +92,6 @@ jobs:
           submodules: true
           token: ${{ secrets.DRASI_CORE_PAT }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
-        with:
-          install: true
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
@@ -129,8 +108,6 @@ jobs:
           platforms: linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-query-host:arm64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/query-host:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/query-host:cache,mode=max
           push: true
 
       - name: Build Publish API
@@ -141,8 +118,6 @@ jobs:
           platforms: linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-publish-api:arm64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/publish-api:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/publish-api:cache
           push: true
 
       - name: Build View Service
@@ -153,8 +128,6 @@ jobs:
           platforms: linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-view-svc:arm64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/view-svc:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/view-svc:cache
           push: true
     
   build-control-plane-amd64:
@@ -167,13 +140,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
-        with:
-          install: true
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
@@ -190,8 +156,6 @@ jobs:
           platforms: linux/amd64
           tags: |
             ghcr.io/${{ github.repository_owner }}/api:amd64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/api:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/api:cache,mode=max
           push: true
 
       - name: Build k8s Resource Provider
@@ -202,8 +166,6 @@ jobs:
           platforms: linux/amd64
           tags: |
             ghcr.io/${{ github.repository_owner }}/kubernetes-provider:amd64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/kubernetes-provider:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/kubernetes-provider:cache,mode=max
           push: true
 
   build-control-plane-arm64:
@@ -215,14 +177,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
-        with:
-          install: true
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
@@ -239,8 +193,6 @@ jobs:
           platforms: linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/api:arm64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/api:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/api:cache,mode=max
           push: true
 
       - name: Build k8s Resource Provider
@@ -251,8 +203,6 @@ jobs:
           platforms: linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/kubernetes-provider:arm64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/kubernetes-provider:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/kubernetes-provider:cache,mode=max
           push: true
 
   build-sources-amd64s:
@@ -350,13 +300,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
-        with:
-          install: true
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
@@ -372,8 +315,6 @@ jobs:
           file: ${{ matrix.component.file }}
           platforms: ${{ matrix.component.platforms }}
           tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:amd64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache,mode=max
           push: true
 
   build-sources-arm64s:
@@ -471,14 +412,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
-        with:
-          install: true
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
@@ -493,8 +426,6 @@ jobs:
           file: ${{ matrix.component.file }}
           platforms: ${{ matrix.component.platforms }}
           tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:arm64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache,mode=max
           push: true
 
   build-reactions-amd64s:
@@ -574,14 +505,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
-        with:
-          install: true
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
@@ -596,8 +519,6 @@ jobs:
           file: ${{ matrix.component.file }}
           platforms: ${{ matrix.component.platforms }}
           tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:amd64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache,mode=max
           push: true
   
   build-reactions-arm64s:
@@ -670,14 +591,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
-        with:
-          install: true
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
@@ -692,8 +605,6 @@ jobs:
           file: ${{ matrix.component.file }}
           platforms: ${{ matrix.component.platforms }}
           tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:arm64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache,mode=max
           push: true
 
   build-cli:
@@ -853,8 +764,6 @@ jobs:
                 AMD64_IMAGE="ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}:amd64"
                 ARM64_IMAGE="ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}:arm64"
 
-                docker pull $AMD64_IMAGE
-                docker pull $ARM64_IMAGE
 
                 docker manifest create "ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}:${{ inputs.tag }}" $AMD64_IMAGE $ARM64_IMAGE
                 docker manifest push "ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}:${{ inputs.tag }}"
