@@ -62,7 +62,7 @@ jobs:
         with:
           context: ./query-container/query-host
           file: ./query-container/query-host/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-query-host:${{ inputs.tag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/query-host:cache
@@ -74,7 +74,7 @@ jobs:
         with:
           context: ./query-container/publish-api
           file: ./query-container/publish-api/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-publish-api:${{ inputs.tag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/publish-api:cache
@@ -86,7 +86,7 @@ jobs:
         with:
           context: ./query-container/view-svc
           file: ./query-container/view-svc/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/query-container-view-svc:${{ inputs.tag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/view-svc:cache
@@ -123,7 +123,7 @@ jobs:
         with:
           context: ./control-planes
           file: ./control-planes/mgmt_api/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/api:${{ inputs.tag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/api:cache
@@ -135,7 +135,7 @@ jobs:
         with:
           context: ./control-planes
           file: ./control-planes/kubernetes_provider/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/kubernetes-provider:${{ inputs.tag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/kubernetes-provider:cache
@@ -156,21 +156,21 @@ jobs:
             context: '.', 
             file: './sources/shared/change-router/Dockerfile', 
             name: 'source-change-router', 
-            platforms: 'linux/amd64'
+            platforms: 'linux/amd64', linux/arm64
           },
           { 
             label: 'Change Dispatcher',
             context: '.', 
             file: './sources/shared/change-dispatcher/Dockerfile', 
             name: 'source-change-dispatcher', 
-            platforms: 'linux/amd64'
+            platforms: 'linux/amd64', linux/arm64
           },
           { 
             label: 'Query API',
             context: '.', 
             file: './sources/shared/query-api/Dockerfile', 
             name: 'source-query-api', 
-            platforms: 'linux/amd64' 
+            platforms: 'linux/amd64', linux/arm64
           },
           { 
             label: 'Debezium Reactivator',
@@ -184,7 +184,7 @@ jobs:
             context: './sources/relational/sql-proxy', 
             file: './sources/relational/sql-proxy/Dockerfile', 
             name: 'source-sql-proxy', 
-            platforms: 'linux/amd64' 
+            platforms: 'linux/amd64', linux/arm64 
           },
 
           { 
@@ -199,7 +199,7 @@ jobs:
             context: './sources/cosmosdb/gremlin-proxy', 
             file: './sources/cosmosdb/gremlin-proxy/Dockerfile', 
             name: 'source-gremlin-proxy', 
-            platforms: 'linux/amd64' 
+            platforms: 'linux/amd64', linux/arm64
           },
 
           { 
@@ -365,48 +365,6 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache,mode=max
           push: true
-
-  tag-single-arch:
-    permissions:
-      packages: write
-      contents: read
-    runs-on: ubuntu-latest
-    needs: validate
-    steps:
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Retag and push Docker images
-        run: |
-            IMAGE_NAMES=(
-                "query-container-query-host"
-                "query-container-publish-api"
-                "query-container-view-svc"
-                "api"
-                "kubernetes-provider"
-                
-                "source-change-router"
-                "source-change-dispatcher"
-                "source-query-api"
-
-            )
-
-            for IMAGE_NAME in "${IMAGE_NAMES[@]}"; do
-                REPO=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-
-                docker pull $REPO:${{ inputs.tag }}
-                docker tag $REPO:${{ inputs.tag }} $REPO:${{ inputs.tag }}
-                docker push $REPO:${{ inputs.tag }}
-            done
-    
-      - name: Logout from GitHub Container Registry
-        run: docker logout ghcr.io
-
   
   build-cli:
     runs-on: ubuntu-latest
@@ -517,7 +475,6 @@ jobs:
     needs:
       - validate
       - build-sources
-      - tag-single-arch
       - build-query-container
       - build-reactions
       - build-control-plane
