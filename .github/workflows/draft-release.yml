@@ -28,7 +28,7 @@ jobs:
             exit 1
           fi
 
-  build-query-container:
+  build-query-container-amd64:
     needs: validate
     permissions:
       packages: write
@@ -62,9 +62,9 @@ jobs:
         with:
           context: ./query-container/query-host
           file: ./query-container/query-host/Dockerfile
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
           tags: |
-            ghcr.io/${{ github.repository_owner }}/query-container-query-host:${{ inputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/query-container-query-host:amd64
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/query-host:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/query-host:cache,mode=max
           push: true
@@ -74,9 +74,9 @@ jobs:
         with:
           context: ./query-container/publish-api
           file: ./query-container/publish-api/Dockerfile
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
           tags: |
-            ghcr.io/${{ github.repository_owner }}/query-container-publish-api:${{ inputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/query-container-publish-api:amd64
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/publish-api:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/publish-api:cache
           push: true
@@ -86,14 +86,78 @@ jobs:
         with:
           context: ./query-container/view-svc
           file: ./query-container/view-svc/Dockerfile
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
           tags: |
-            ghcr.io/${{ github.repository_owner }}/query-container-view-svc:${{ inputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/query-container-view-svc:amd64
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/view-svc:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/view-svc:cache
           push: true
+  
+  build-query-container-arm64:
+    needs: validate
+    permissions:
+      packages: write
+      contents: read
+    runs-on: release-arm
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          submodules: true
+          token: ${{ secrets.DRASI_CORE_PAT }}
 
-  build-control-plane:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
+        with:
+          install: true
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build Query Host
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: ./query-container/query-host
+          file: ./query-container/query-host/Dockerfile
+          platforms: linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/query-container-query-host:arm64
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/query-host:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/query-host:cache,mode=max
+          push: true
+
+      - name: Build Publish API
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: ./query-container/publish-api
+          file: ./query-container/publish-api/Dockerfile
+          platforms: linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/query-container-publish-api:arm64
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/publish-api:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/publish-api:cache
+          push: true
+
+      - name: Build View Service
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: ./query-container/view-svc
+          file: ./query-container/view-svc/Dockerfile
+          platforms: linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/query-container-view-svc:arm64
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/view-svc:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/view-svc:cache
+          push: true
+    
+  build-control-plane-amd64:
     runs-on: ubuntu-latest
     needs: validate
     permissions:
@@ -123,9 +187,9 @@ jobs:
         with:
           context: ./control-planes
           file: ./control-planes/mgmt_api/Dockerfile
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
           tags: |
-            ghcr.io/${{ github.repository_owner }}/api:${{ inputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/api:amd64
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/api:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/api:cache,mode=max
           push: true
@@ -135,14 +199,63 @@ jobs:
         with:
           context: ./control-planes
           file: ./control-planes/kubernetes_provider/Dockerfile
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
           tags: |
-            ghcr.io/${{ github.repository_owner }}/kubernetes-provider:${{ inputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/kubernetes-provider:amd64
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/kubernetes-provider:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/kubernetes-provider:cache,mode=max
           push: true
 
-  build-sources:
+  build-control-plane-arm64:
+    needs: validate
+    permissions:
+      packages: write
+      contents: read
+    runs-on: release-arm
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
+        with:
+          install: true
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build Management API
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: ./control-planes
+          file: ./control-planes/mgmt_api/Dockerfile
+          platforms: linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/api:arm64
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/api:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/api:cache,mode=max
+          push: true
+
+      - name: Build k8s Resource Provider
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: ./control-planes
+          file: ./control-planes/kubernetes_provider/Dockerfile
+          platforms: linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/kubernetes-provider:arm64
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/kubernetes-provider:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/kubernetes-provider:cache,mode=max
+          push: true
+
+  build-sources-amd64s:
     runs-on: ubuntu-latest
     needs: validate
     permissions:
@@ -156,35 +269,35 @@ jobs:
             context: '.', 
             file: './sources/shared/change-router/Dockerfile', 
             name: 'source-change-router', 
-            platforms: 'linux/amd64', linux/arm64
+            platforms: 'linux/amd64'
           },
           { 
             label: 'Change Dispatcher',
             context: '.', 
             file: './sources/shared/change-dispatcher/Dockerfile', 
             name: 'source-change-dispatcher', 
-            platforms: 'linux/amd64', linux/arm64
+            platforms: 'linux/amd64'
           },
           { 
             label: 'Query API',
             context: '.', 
             file: './sources/shared/query-api/Dockerfile', 
             name: 'source-query-api', 
-            platforms: 'linux/amd64', linux/arm64
+            platforms: 'linux/amd64'
           },
           { 
             label: 'Debezium Reactivator',
             context: './sources/relational/debezium-reactivator', 
             file: './sources/relational/debezium-reactivator/Dockerfile', 
             name: 'source-debezium-reactivator', 
-            platforms: 'linux/amd64,linux/arm64' 
+            platforms: 'linux/amd64'
           },
           { 
             label: 'SQL Proxy',
             context: './sources/relational/sql-proxy', 
             file: './sources/relational/sql-proxy/Dockerfile', 
             name: 'source-sql-proxy', 
-            platforms: 'linux/amd64', linux/arm64 
+            platforms: 'linux/amd64'
           },
 
           { 
@@ -192,14 +305,14 @@ jobs:
             context: './sources/cosmosdb/cosmosdb-ffcf-reactivator', 
             file: './sources/cosmosdb/cosmosdb-ffcf-reactivator/Dockerfile', 
             name: 'source-cosmosdb-reactivator', 
-            platforms: 'linux/amd64,linux/arm64' 
+            platforms: 'linux/amd64'
           },
           { 
             label: 'Gremlin Proxy',
             context: './sources/cosmosdb/gremlin-proxy', 
             file: './sources/cosmosdb/gremlin-proxy/Dockerfile', 
             name: 'source-gremlin-proxy', 
-            platforms: 'linux/amd64', linux/arm64
+            platforms: 'linux/amd64'
           },
 
           { 
@@ -207,14 +320,14 @@ jobs:
             context: './sources/dataverse/dataverse-reactivator', 
             file: './sources/dataverse/dataverse-reactivator/Dockerfile', 
             name: 'source-dataverse-reactivator', 
-            platforms: 'linux/amd64,linux/arm64' 
+            platforms: 'linux/amd64'
           },
           { 
             label: 'Dataverse Proxy',
             context: './sources/dataverse/dataverse-proxy', 
             file: './sources/dataverse/dataverse-proxy/Dockerfile', 
             name: 'source-dataverse-proxy', 
-            platforms: 'linux/amd64,linux/arm64' 
+            platforms: 'linux/amd64'
           },
 
           { 
@@ -222,14 +335,14 @@ jobs:
             context: './sources/eventhub/eventhub-reactivator', 
             file: './sources/eventhub/eventhub-reactivator/Dockerfile', 
             name: 'source-eventhub-reactivator', 
-            platforms: 'linux/amd64,linux/arm64' 
+            platforms: 'linux/amd64'
           },
           { 
             label: 'EventHub Proxy',
             context: './sources/eventhub/eventhub-proxy', 
             file: './sources/eventhub/eventhub-proxy/Dockerfile', 
             name: 'source-eventhub-proxy', 
-            platforms: 'linux/amd64,linux/arm64' 
+            platforms: 'linux/amd64' 
           }
         ]
 
@@ -258,12 +371,133 @@ jobs:
           context: ${{ matrix.component.context }}
           file: ${{ matrix.component.file }}
           platforms: ${{ matrix.component.platforms }}
-          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:${{ inputs.tag }}
+          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:amd64
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache,mode=max
           push: true
 
-  build-reactions:
+  build-sources-arm64s:
+    runs-on: release-arm
+    needs: validate
+    permissions:
+      packages: write
+      contents: read
+    strategy:
+      matrix:
+        component: [
+          { 
+            label: 'Change Router',
+            context: '.', 
+            file: './sources/shared/change-router/Dockerfile', 
+            name: 'source-change-router', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'Change Dispatcher',
+            context: '.', 
+            file: './sources/shared/change-dispatcher/Dockerfile', 
+            name: 'source-change-dispatcher', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'Query API',
+            context: '.', 
+            file: './sources/shared/query-api/Dockerfile', 
+            name: 'source-query-api', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'Debezium Reactivator',
+            context: './sources/relational/debezium-reactivator', 
+            file: './sources/relational/debezium-reactivator/Dockerfile', 
+            name: 'source-debezium-reactivator', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'SQL Proxy',
+            context: './sources/relational/sql-proxy', 
+            file: './sources/relational/sql-proxy/Dockerfile', 
+            name: 'source-sql-proxy', 
+            platforms: 'linux/arm64'
+          },
+
+          { 
+            label: 'CosmosDB Reactivator',
+            context: './sources/cosmosdb/cosmosdb-ffcf-reactivator', 
+            file: './sources/cosmosdb/cosmosdb-ffcf-reactivator/Dockerfile', 
+            name: 'source-cosmosdb-reactivator', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'Gremlin Proxy',
+            context: './sources/cosmosdb/gremlin-proxy', 
+            file: './sources/cosmosdb/gremlin-proxy/Dockerfile', 
+            name: 'source-gremlin-proxy', 
+            platforms: 'linux/arm64'
+          },
+
+          { 
+            label: 'Dataverse Reactivator',
+            context: './sources/dataverse/dataverse-reactivator', 
+            file: './sources/dataverse/dataverse-reactivator/Dockerfile', 
+            name: 'source-dataverse-reactivator', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'Dataverse Proxy',
+            context: './sources/dataverse/dataverse-proxy', 
+            file: './sources/dataverse/dataverse-proxy/Dockerfile', 
+            name: 'source-dataverse-proxy', 
+            platforms: 'linux/arm64'
+          },
+
+          { 
+            label: 'EventHub Reactivator',
+            context: './sources/eventhub/eventhub-reactivator', 
+            file: './sources/eventhub/eventhub-reactivator/Dockerfile', 
+            name: 'source-eventhub-reactivator', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'EventHub Proxy',
+            context: './sources/eventhub/eventhub-proxy', 
+            file: './sources/eventhub/eventhub-proxy/Dockerfile', 
+            name: 'source-eventhub-proxy', 
+            platforms: 'linux/arm64' 
+          }
+        ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
+        with:
+          install: true
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: ${{ matrix.component.context }}
+          file: ${{ matrix.component.file }}
+          platforms: ${{ matrix.component.platforms }}
+          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:arm64
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache,mode=max
+          push: true
+
+  build-reactions-amd64s:
     needs: validate
     permissions:
       packages: write
@@ -277,7 +511,7 @@ jobs:
             context: './reactions/signalr/signalr-reaction', 
             file: './reactions/signalr/signalr-reaction/Dockerfile', 
             name: 'reaction-signalr', 
-            platforms: 'linux/amd64,linux/arm64'
+            platforms: 'linux/amd64'
           },
           { 
             label: 'Dataverse',
@@ -291,49 +525,49 @@ jobs:
             context: './reactions/debezium/debezium-reaction', 
             file: './reactions/debezium/debezium-reaction/Dockerfile', 
             name: 'reaction-debezium', 
-            platforms: 'linux/amd64,linux/arm64'
+            platforms: 'linux/amd64'
           },
           { 
             label: 'Debug',
             context: './reactions/platform/debug-reaction', 
             file: './reactions/platform/debug-reaction/Dockerfile', 
             name: 'reaction-debug', 
-            platforms: 'linux/amd64,linux/arm64'
+            platforms: 'linux/amd64'
           },
           { 
             label: 'EventGrid',
             context: './reactions/azure/eventgrid-reaction', 
             file: './reactions/azure/eventgrid-reaction/Dockerfile', 
             name: 'reaction-eventgrid', 
-            platforms: 'linux/amd64,linux/arm64'
+            platforms: 'linux/amd64'
           },
           { 
             label: 'Gremlin',
             context: './reactions/gremlin/gremlin-reaction', 
             file: './reactions/gremlin/gremlin-reaction/Dockerfile', 
             name: 'reaction-gremlin', 
-            platforms: 'linux/amd64,linux/arm64'
+            platforms: 'linux/amd64'
           },
           { 
             label: 'Result',
             context: './reactions/platform/result-reaction', 
             file: './reactions/platform/result-reaction/Dockerfile', 
             name: 'reaction-result', 
-            platforms: 'linux/amd64,linux/arm64'
+            platforms: 'linux/amd64'
           },
           { 
             label: 'StorageQueue',
             context: './reactions/azure/storagequeue-reaction', 
             file: './reactions/azure/storagequeue-reaction/Dockerfile', 
             name: 'reaction-storagequeue', 
-            platforms: 'linux/amd64,linux/arm64'
+            platforms: 'linux/amd64'
           },
           { 
             label: 'StoredProc',
             context: './reactions/sql/storedproc-reaction', 
             file: './reactions/sql/storedproc-reaction/Dockerfile', 
             name: 'reaction-storedproc', 
-            platforms: 'linux/amd64,linux/arm64'
+            platforms: 'linux/amd64'
           }
         ]
     steps:
@@ -361,11 +595,107 @@ jobs:
           context: ${{ matrix.component.context }}
           file: ${{ matrix.component.file }}
           platforms: ${{ matrix.component.platforms }}
-          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:${{ inputs.tag }}
+          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:amd64
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache,mode=max
           push: true
   
+  build-reactions-arm64s:
+    needs: validate
+    permissions:
+      packages: write
+      contents: read
+    runs-on: release-arm
+    strategy:
+      matrix:
+        component: [
+          { 
+            label: 'SignalR',
+            context: './reactions/signalr/signalr-reaction', 
+            file: './reactions/signalr/signalr-reaction/Dockerfile', 
+            name: 'reaction-signalr', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'Debezium',
+            context: './reactions/debezium/debezium-reaction', 
+            file: './reactions/debezium/debezium-reaction/Dockerfile', 
+            name: 'reaction-debezium', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'Debug',
+            context: './reactions/platform/debug-reaction', 
+            file: './reactions/platform/debug-reaction/Dockerfile', 
+            name: 'reaction-debug', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'EventGrid',
+            context: './reactions/azure/eventgrid-reaction', 
+            file: './reactions/azure/eventgrid-reaction/Dockerfile', 
+            name: 'reaction-eventgrid', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'Gremlin',
+            context: './reactions/gremlin/gremlin-reaction', 
+            file: './reactions/gremlin/gremlin-reaction/Dockerfile', 
+            name: 'reaction-gremlin', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'Result',
+            context: './reactions/platform/result-reaction', 
+            file: './reactions/platform/result-reaction/Dockerfile', 
+            name: 'reaction-result', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'StorageQueue',
+            context: './reactions/azure/storagequeue-reaction', 
+            file: './reactions/azure/storagequeue-reaction/Dockerfile', 
+            name: 'reaction-storagequeue', 
+            platforms: 'linux/arm64'
+          },
+          { 
+            label: 'StoredProc',
+            context: './reactions/sql/storedproc-reaction', 
+            file: './reactions/sql/storedproc-reaction/Dockerfile', 
+            name: 'reaction-storedproc', 
+            platforms: 'linux/arm64'
+          }
+        ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
+        with:
+          install: true
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+     
+      - name: Build and push
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: ${{ matrix.component.context }}
+          file: ${{ matrix.component.file }}
+          platforms: ${{ matrix.component.platforms }}
+          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:arm64
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:cache,mode=max
+          push: true
+
   build-cli:
     runs-on: ubuntu-latest
     needs: validate
@@ -465,6 +795,81 @@ jobs:
           name: drasi_vscode_extension
           path: ${{ env.RELEASE_PATH}}
    
+
+  release-manifest:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    needs: 
+      - build-control-plane-amd64
+      - build-control-plane-arm64
+      - build-sources-amd64s
+      - build-sources-arm64s
+      - build-reactions-amd64s
+      - build-reactions-arm64s
+      - build-query-container-amd64
+      - build-query-container-arm64
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and Push Manifest List
+        run: |
+            IMAGE_NAMES=(
+                "query-container-query-host"
+                "query-container-publish-api"
+                "query-container-view-svc"
+                "api"
+                "kubernetes-provider"
+                
+                "source-change-router"
+                "source-change-dispatcher"
+                "source-query-api"
+                
+                "source-debezium-reactivator"
+                "source-sql-proxy"
+                "source-cosmosdb-reactivator"
+                "source-gremlin-proxy"      
+                "source-eventhub-reactivator"
+                "source-eventhub-proxy"
+                "source-dataverse-reactivator"
+                "source-dataverse-proxy"
+
+                "reaction-signalr"
+                "reaction-debezium"
+                "reaction-debug"
+                "reaction-eventgrid"
+                "reaction-gremlin"
+                "reaction-result"
+                "reaction-storagequeue"
+                "reaction-storedproc"
+            )
+
+            for IMAGE_NAME in "${IMAGE_NAMES[@]}"; do
+                AMD64_IMAGE="ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}:amd64"
+                ARM64_IMAGE="ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}:arm64"
+
+                docker pull $AMD64_IMAGE
+                docker pull $ARM64_IMAGE
+
+                docker manifest create "ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}:${{ inputs.tag }}" $AMD64_IMAGE $ARM64_IMAGE
+                docker manifest push "ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}:${{ inputs.tag }}"
+            done
+    
+      - name: Tag and push Dataverse Reaction
+        run: |
+            docker pull ghcr.io/${{ github.repository_owner }}/reaction-dataverse:amd64
+            docker tag "ghcr.io/${{ github.repository_owner }}/reaction-dataverse:amd64" "ghcr.io/${{ github.repository_owner }}/reaction-dataverse:${{ inputs.tag }}"
+            docker push ghcr.io/${{ github.repository_owner }}/reaction-dataverse:${{ inputs.tag }}
+
+
+      - name: Logout from GitHub Container Registry
+        run: docker logout ghcr.io
+
   release:
     permissions:
       contents: write
@@ -474,10 +879,7 @@ jobs:
     name: Draft Release
     needs:
       - validate
-      - build-sources
-      - build-query-container
-      - build-reactions
-      - build-control-plane
+      - release-manifest
       - package-cli      
       - vscode-extension
     runs-on: ubuntu-latest
